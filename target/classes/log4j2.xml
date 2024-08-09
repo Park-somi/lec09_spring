@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration>
+<!-- 남기고자하는 기록의 위험도 -->
+<!-- TRACE < DEBUG < INFO < WARN < ERROR < FATAL -->
+	<Appenders> 
+		<!-- 콘솔 : 어떤 규칙을 지키면서 남길지 -->
+	    <Console name="Console_Appender" target="SYSTEM_OUT">
+	        <PatternLayout pattern="%d{HH:mm:ss.SSS} %-5level %pid --- [%C] %m%n"/>
+	    </Console>
+	    <!-- 파일 : 어떤 규칙을 지키면서 저장할지 -->
+	    <RollingFile name ="File_Appender">
+            <FileName>C:/log/springlog.log</FileName>
+            <!-- 감당할 수 없는 크기가 되면 zip로 묶어서 저장 -->
+            <FilePattern>C:/log/%d{yyyy-MM-dd-hh-mm}/springlog.zip</FilePattern>
+            <PatternLayout>
+                <Pattern>%d{yyyy-MM-dd HH:mm:ss} %5p [%c] %m%n</Pattern>
+            </PatternLayout>
+            <Policies>
+            	<!-- 1분마다 zip 파일을 생성 -->
+                <TimeBasedTriggeringPolicy interval = "1" modulate = "true"/>
+            </Policies>
+        </RollingFile>
+	</Appenders>
+	<Loggers>
+	    <Root level="INFO" additivity="false">
+	        <AppenderRef ref="Console_Appender"/>
+	        <AppenderRef ref="File_Appender"/>
+	    </Root>
+	    <Logger name="org.springframework" level="OFF" additivity="false">
+	        <AppenderRef ref="Console_Appender" />
+	        <AppenderRef ref="File_Appender"/>
+	    </Logger>
+	    <!-- 'level'을 'INFO'로 설정했으면 그 밑에 있는 것들(TRACE, DEBUG)은 로그를 남기지 X -->
+	    <Logger name="com.gn.spring" level="INFO" additivity="false">
+	        <AppenderRef ref="Console_Appender" />
+	        <AppenderRef ref="File_Appender"/>
+	    </Logger>
+	</Loggers>
+</Configuration>

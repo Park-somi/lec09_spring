@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC
+"-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="boardMapper">
+	<select id="selectBoardList" resultType="com.gn.spring.board.model.vo.Board"
+	parameterType = "com.gn.spring.board.model.vo.Board">
+		SELECT *
+		FROM `board`
+		<if test='search_text != null and search_text.equals("") == false'>
+			<where>
+			<!--<if test='board_title != null and board_title.equals("") == false'>
+					AND board_title LIKE CONCAT('%',#{board_title},'%')
+				</if> -->
+				<choose>
+					<!-- search_type 이 0일 경우 null으로 인식 -->
+					<when test='search_type != null and search_type == 1'>
+						board_title LIKE CONCAT('%',#{search_text},'%')
+					</when>
+					<when test='search_type != null and search_type == 2'>
+						board_content LIKE CONCAT('%',#{search_text},'%')
+					</when>
+					<otherwise>
+						board_title LIKE CONCAT('%',#{search_text},'%')
+						OR board_content LIKE CONCAT('%',#{search_text},'%')
+					</otherwise>
+				</choose>
+			</where>
+		</if>
+		LIMIT #{limitPageNo}, #{numPerPage}
+	</select>
+	<select id="selectBoardCount" resultType="int"
+	parameterType = "com.gn.spring.board.model.vo.Board">
+		SELECT COUNT(*)
+		FROM `board`
+		<if test='search_text != null and search_text.equals("") == false'>
+			<where>
+			<!--<if test='board_title != null and board_title.equals("") == false'>
+					AND board_title LIKE CONCAT('%',#{board_title},'%')
+				</if> -->
+				<choose>
+					<!-- search_type 이 0일 경우 null으로 인식 -->
+					<when test='search_type != null and search_type == 1'>
+						board_title LIKE CONCAT('%',#{search_text},'%')
+					</when>
+					<when test='search_type != null and search_type == 2'>
+						board_content LIKE CONCAT('%',#{search_text},'%')
+					</when>
+					<otherwise>
+						board_title LIKE CONCAT('%',#{search_text},'%')
+						OR board_content LIKE CONCAT('%',#{search_text},'%')
+					</otherwise>
+				</choose>
+			</where>
+		</if>
+	</select>
+	<insert id="insertBoard"
+	parameterType = "com.gn.spring.board.model.vo.Board">
+		INSERT INTO `board`(board_title,board_content,ori_thumbnail,new_thumbnail) 
+		VALUES (#{board_title},#{board_content},#{ori_thumbnail},#{new_thumbnail})
+	</insert>
+	<select id="selectBoardOne" resultType="com.gn.spring.board.model.vo.Board"
+	parameterType = "_int">
+		SELECT *
+		FROM `board`
+		WHERE board_no = #{board_no}
+	</select>
+	<update id="updateBoard" 
+	parameterType = "com.gn.spring.board.model.vo.Board">
+			UPDATE `board`
+			SET board_title = #{board_title}, board_content = #{board_content}
+		<if test='ori_thumbnail != null and ori_thumbnail.equals("") == false'>
+			,ori_thumbnail = #{ori_thumbnail}, new_thumbnail = #{new_thumbnail}
+		</if>
+			WHERE board_no = #{board_no}
+	</update>
+	<delete id="deleteBoard" parameterType = "_int">
+		DELETE FROM `board`
+		WHERE board_no = #{board_no}
+	</delete>
+</mapper>

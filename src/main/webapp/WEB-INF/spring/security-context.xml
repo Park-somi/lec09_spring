@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/security"
+    xmlns:beans="http://www.springframework.org/schema/beans"
+    xmlns:context="http://www.springframework.org/schema/context"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.springframework.org/schema/beans 
+    https://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/security 
+    http://www.springframework.org/schema/security/spring-security.xsd
+    http://www.springframework.org/schema/context 
+    https://www.springframework.org/schema/context/spring-context.xsd">
+	
+	<!-- 
+		* http : 필터를 적용할 실질적 경로 설정
+		auto-config : 자동 설정 여부(true : 자동 / false : 수동)
+		use-expressions : 스프링 EL(표현법)을 사용할 것인가 여부
+		intercept-url : 스프링 시큐리티가 감시하는 url과 권한
+	-->
+	<!-- <http auto-config="true" use-expressions="false">
+		<intercept-url pattern="/board/**" access="ROLE_USER"/>
+	</http> -->
+	
+<!-- 	<http pattern="/" security="none"/>
+	<http pattern="/resources/**" security="none"/> -->
+	<http auto-config="true" use-expressions="true">
+		<!-- isAuthenticated() : 인증한 유저만 접근 가능 (로그인한 유저만 게시판에 접근가능) -->
+		<intercept-url pattern="/board/**" access="isAuthenticated()"/>
+		<!-- permitAll() : 모두 접근 가능 -->
+		<intercept-url pattern="/resources/**" access="permitAll()"/>
+		<intercept-url pattern="/" access="permitAll()"/>
+		<intercept-url pattern="/join" access="permitAll()"/>
+		<!--
+			* 로그인 페이지 관련 속성 설정
+			login-page : 로그인 화면 전환 url
+			login-processing-url : 로그인 기능 url(default : /login)
+			username-parameter : 로그인시에 전송되는 아이디 name값(form 태그의 name)
+			password-parameter : 로그인시에 전송되는 비밀번호 name값(form 태그의 name)
+			default-target-url : 로그인 성공시 이동할 url
+			authentication-failure-url : 로그인 실패시 이동할 url
+		-->
+		<form-login 
+			login-page="/loginPage"
+			username-parameter="user_id"
+			password-parameter="user_pw"
+			default-target-url="/"
+			authentication-failure-url="/ErrorPage"
+		/>
+		
+		<!-- 
+			1. authentication-failure-url 수정(에러페이지 화면 전환) 
+			2. com.gn.spring.common.Error 클래스 생성 -> Controller 지정
+			3. views/error/404.jsp 페이지 생성
+		-->
+		
+		<!--  
+			* 로그아웃 관련 설정
+			logout-url : 로그아웃 url 설정
+			logout-success-url : 로그아웃 성공시 이동할 url 설정
+			invalidate-session : 로그아웃 성공시 세션의 연결을 끊을지 설정
+			delete-cookies : 로그아웃 성공시 삭제할 쿠키 이름 설정
+		-->
+		<logout
+			logout-url="/logout"
+			logout-success-url="/"
+			delete-cookies="JESSIONID, remember-me"
+		/>
+		
+		<!--
+			[자동로그인]
+			token-validity-seconds : 쿠키 지속 시간(604800 : 7일)
+			data-sources-ref : 데이터베이스 테이블을 꺼내옴
+		-->
+		<remember-me
+			token-validity-seconds="604800"
+			data-source-ref="dataSource"
+		/>
+		
+	</http>
+	
+	<!-- Spring Security 에서 비밀번호 암호화 로직 담당 Bean 등록 -->
+	<beans:bean id="bcryptPassword" 
+	class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder" />
+	
+	
+	<!-- 
+		* authentication-manager : AuthenticationManager 설정
+		authentication-provider : AuthenticationProvider 설정
+		user-service : 간단하게 UserDetails 정보를 설정할 수 있음
+		password 앞에 {noop} 사용 -> 암호화 없이 시큐리티 동작 확인 가능(실제로는 사용해야함)
+		user name : ID
+	-->
+	
+	<!-- annotation-config : 설정 관련 어노테이션들을 읽을 수 있게 해줌 -->
+	<context:annotation-config/>
+	<!-- com.gn.spring 하위 클래스들을 'component'('Bean'으로서)로 사용 -->
+	<context:component-scan base-package="com.gn.spring"/>
+	<authentication-manager>
+		<authentication-provider user-service-ref="loginService">
+			<password-encoder ref="bcryptPassword"/>
+		</authentication-provider>
+	</authentication-manager>
+	
+<!-- 	<authentication-manager>
+		<authentication-provider>
+			<user-service>
+				<user name="admin" password="{noop}admin" authorities="ROLE_ADMIN"/>
+				<user name="user" password="{noop}user" authorities="ROLE_USER"/>
+			</user-service>
+		</authentication-provider>
+	</authentication-manager> -->
+	
+	<!-- 방화벽을 물렁물렁 -->
+	<beans:bean id="customHttpFirewall" 
+	class="org.springframework.security.web.firewall.StrictHttpFirewall">
+		<beans:property name="allowSemicolon" value="true"/>
+	</beans:bean>
+	<http-firewall ref="customHttpFirewall"/>
+	
+</beans:beans>

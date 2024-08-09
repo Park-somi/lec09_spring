@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:websocket="http://www.springframework.org/schema/websocket" 
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc 
+	https://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans 
+		https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/context 
+		https://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/websocket 
+		http://www.springframework.org/schema/websocket/spring-websocket.xsd">
+	<!-- @Controller가 명시된 클래스를 요청받을 수 있는 객체로 설정 -->
+	<!-- 어노테이션 드리븐을 쓰지 않으면 요청받는 클래스를 직접 bean 태그로 추가해야 함 -->
+	<annotation-driven/>
+	
+	<!-- [resources 태그 추가] -->
+	<!-- 
+		웹 애플리케이션 개발 -> 이미지, css, js도 경로를 가지고 있음 
+	    경로를 가지고 있다 == HandlerMapping('url'을 기준으로 탐색)의 탐색 대상이 됨 
+	    문제는 정적인 파일은 Controller(서블릿)가 아님(요청을 받을 수 없음) -> 404 에러 
+	    'resources'라는 정적인 파일이 모여있는 폴더 경로를 생성하여
+	    HandlerMapping의 불필요한 접근 차단 
+	-->
+	<!-- src/main/webapp 가 /까지의 경로를 뜻함 -->
+	<resources location="/resources/" mapping="/resources/**"/>
+	<!-- 
+		[화면의 경로 알려주기]
+		ViewResolver가 반환받은 View파일(jsp)를 찾기 위해서 기본 위치 알려주기
+		=> 앞(prefix)과 뒤(suffix)에 경로를 붙여줌 
+	-->
+	<beans:bean 
+	class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<beans:property name="prefix" value="/WEB-INF/views/"/>
+		<beans:property name="suffix" value=".jsp"/>
+	</beans:bean>
+	
+	<!--
+		[Bean(빈) 등록(=의존성 주입) 대상 설정]
+		base-package를 설정해서 하위 경로의 자바 파일 중에서
+		어노테이션을 표시한 파일을 'Bean'으로 등록하여 재사용 가능하도록 해줌
+	-->
+	<context:component-scan base-package="com.gn.spring"/>
+	
+	<!-- 외부 파일 경로 지정 -->
+	<resources location="file:///C:/board/upload/" 
+	mapping="/boardUploadImg/**"/>
+	
+	<!-- websocket 클래스 빈으로 등록하기 -->
+	<beans:bean id="chatting" 
+	class="com.gn.spring.websocket.model.service.ChattingServer"/>
+	<websocket:handlers>
+		<!-- handler = id값 -->
+		<websocket:mapping handler="chatting" path="/chatting"/>
+		<websocket:handshake-interceptors>
+			<beans:bean class="org.springframework.web.socket.server.support.HttpSessionHandshakeInterceptor"/>
+		</websocket:handshake-interceptors>
+	</websocket:handlers>
+	
+</beans:beans>
+
+
+
+
+

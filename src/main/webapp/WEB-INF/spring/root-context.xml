@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	https://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/aop 
+	http://www.springframework.org/schema/aop/spring-aop.xsd">
+	
+	<!-- [데이터베이스 관련 설정] -->
+	<bean class="org.springframework.jdbc.datasource.DriverManagerDataSource" id="dataSource">
+		<property name="driverClassName" value="org.mariadb.jdbc.Driver"/>
+		<property name="url" value="jdbc:mariadb://127.0.0.1:3306/mvc_study"/>
+		<property name="username" value="scott"/>
+		<property name="password" value="tiger"/>
+	</bean>
+	
+	<!-- 첫번째 property의 ref : 첫번째 bean의 id값-->
+	<bean class="org.mybatis.spring.SqlSessionFactoryBean" id="sqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"/>
+		<property name="mapperLocations" value="classpath:mappers/*mapper.xml"/>
+	</bean>
+
+	<bean class="org.mybatis.spring.SqlSessionTemplate" id="sqlSession">
+		<constructor-arg name="sqlSessionFactory" ref="sqlSessionFactoryBean"/>
+	</bean>
+	
+	<!-- [AOP 관련 설정]
+		1. 횡단관심사(공통으로 실행해야 하는 메소드)를 구현해놓은 클래스
+		2. pointcut(대상), advisor(시점)
+	-->
+	<!-- 1. xml 방식으로 aop 설정 -->
+			<!-- 접근제한자 생략 / 리턴값 : * / 하위패키지까지 전부 / 메소드명이 뭐가 와도 상관 X / 매개변수 뭐가 와도 상관 X, 0개 이상 -->
+<!-- 	<bean id="loggingService" class="com.gn.spring.common.aop.LoggerService"/>
+	<aop:config>
+		<aop:aspect ref="loggingService">
+			<aop:pointcut expression="execution( * com.gn.spring..*(..))" id="pt"/>
+			<aop:before method="loggerBefore" pointcut-ref="pt"/>
+			<aop:after method="loggerAfter" pointcut-ref="pt"/>
+		</aop:aspect>
+	</aop:config> -->
+	
+	<!-- 2. 어노테이션 방식으로 aop 사용 -->
+	<aop:aspectj-autoproxy/>
+	
+</beans>
